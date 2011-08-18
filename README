@@ -1,3 +1,6 @@
+Simple script for submiting links to reddit, based
+on existing RSS feed.
+
 Requires:
   reddit_api >= 1.0     (https://github.com/mellort/reddit_api)
   feedparser >= 5.0.1   (apt-get install python-feedparser)
@@ -6,3 +9,6 @@ Uses shelve module (which uses anydbm, which uses Berkley DB)
 for storing what was uploaded.
 
 Configuration in the source code
+
+Know what are you doing before using this script.
+Read reddit term of usage, and do not spam reddit unacassarly.
