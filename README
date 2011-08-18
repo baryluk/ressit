@@ -8,7 +8,9 @@ Requires:
 Uses shelve module (which uses anydbm, which uses Berkley DB)
 for storing what was uploaded.
 
-Configuration in the source code
+Example configuration in file example_config.ini,
+pass it as argument to ressit.py
 
 Know what are you doing before using this script.
 Read reddit term of usage, and do not spam reddit unacassarly.
+Not following sane behaviour will end with account or IP address blocked.
