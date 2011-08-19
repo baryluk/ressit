@@ -18,7 +18,9 @@ defaults = {
 	'error_delay'      : 600,    # how long wait after retries failed
 	'robust'           : True,   # if False, then errors will terminate script
 	'db_filename'      : "uploads.shelve.db",
-	'dry_run'          : False
+	'dry_run'          : False,
+	'verbose'          : False,
+	'quiet'            : False
 }
 
 config_filename = sys.argv[1]
@@ -34,8 +36,6 @@ for section_name in config.sections():
 	if section_name != "general" and section_name.startswith("r/"):
 		reddit_subreddits.append(section_name)
 
-print "Found", len(reddit_subreddits), "subreddit sections."
-
 if len(reddit_subreddits) == 0:
 	raise Exception("No subreddits defined in configuration file")
 
@@ -47,6 +47,12 @@ looping          = config.getboolean('general', 'looping')
 refresh_time     = config.getint('general', 'refresh_time')
 db_filename      = config.get('general', 'db_filename')
 dry_run          = config.getboolean('general', 'dry_run')
+verbose          = config.getboolean('general', 'verbose')
+quiet            = config.getboolean('general', 'quiet')
+
+nq = not quiet
+
+if nq: print "Found", len(reddit_subreddits), "subreddit sections."
 
 while True:
 	s = shelve.open(db_filename)
@@ -56,13 +62,13 @@ while True:
 
 	def login(r, k):
 		if r == None:
-			print "Logging in as %s ..." % (reddit_username),
+			if nq: print "Logging in as %s ..." % (reddit_username),
 			r = reddit.Reddit(user_agent="ressit robot 0.1")
 			r.login(user=reddit_username, password=reddit_password)
-			print "logged,",
+			if nq: print "logged,",
 		if k == None:
 			k = r.get_subreddit(reddit_subreddit)
-			print "got reddit."
+			if nq: print "got reddit."
 		return r, k
 
 	for reddit_subreddit in reddit_subreddits:
@@ -72,43 +78,44 @@ while True:
 
 		k = None
 
-		print "Starting update for subreddit r/%s" % (reddit_subreddit)
+		if nq: print "Starting update for subreddit r/%s" % (reddit_subreddit)
 
 		feeds = config.items(section_name)
 		if len(feeds) == 0:
-			print "WARNING: No feeds for subreddit", reddit_subreddit
+			if nq: print "WARNING: No feeds for subreddit", reddit_subreddit
 			continue
 		# TODO: multifeed uploader
 		for key, feed_url in feeds:
-			print time.asctime()
-			print "Retriving, parsing, and analyzing feed", feed_url
+			if nq: print time.asctime()
+			if nq: print "Retriving, parsing, and analyzing feed", feed_url
 			ignored, submited = 0, 0
 			for f in reversed(feedparser.parse(feed_url).entries):
 				key = str(f.link)
 				if key in s:
+					if verbose:
+						print "ignoring %d:" % (ignored+1), f.title, f.link
 					ignored += 1
 					continue
 				r, k = login(r, k) # lazy login
-				print "submiting %d:" % (submited+1),
-				print f.title, f.link,
+				if nq: print "submiting %d:" % (submited+1), f.title, f.linke
 				s[key] = 1
 				if not dry_run:
 					k.submit(url=f.link, title=f.title)
 				else:
-					print "dry run",
+					if nq: print "dry run",
 				# TODO: automatically 'approve' this submissions
-				print "submited."
-				s[key] = 2 # TODO: date of upload
+				if nq: print "submited."
+				s[key] = int(time.time())
 				submited += 1
 				time.sleep(submit_delay)
 
-			print "Feed summary:", ignored, "ignored,", submited, "submited."
+			if nq: print "Feed summary:", ignored, "ignored,", submited, "submited."
 
 	s.close()
 	k = None
 	r = None
 	if looping:
-		print "Sleeping", refresh_time, "second for feed updates."
+		if nq: print "Sleeping", refresh_time, "second for feed updates."
 		time.sleep(refresh_time)
 	else:
 		break
