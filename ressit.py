@@ -41,8 +41,8 @@ for section_name in config.sections():
 if len(reddit_subreddits) == 0:
 	raise Exception("No subreddits defined in configuration file")
 
-reddit_username  = config.get('general', 'password')
-reddit_password  = config.get('general', 'username')
+reddit_username  = config.get('general', 'username')
+reddit_password  = config.get('general', 'password')
 
 submit_delay     = config.getint('general', 'submit_delay')
 looping          = config.getboolean('general', 'looping')
@@ -106,7 +106,7 @@ while True:
 			ignored, submited = 0, 0
 			for f in reversed(feedparser.parse(feed_url).entries):
 				key = str(f.link)
-				if key in s:
+				if key in s and s[key] != 1:
 					if veryverbose:
 						print "ignoring %d:" % (ignored+1), f.title, f.link
 					ignored += 1
@@ -120,7 +120,8 @@ while True:
 					if normalverbose: print "dry run",
 				# TODO: automatically 'approve' this submissions
 				if normalverbose: print "submited."
-				s[key] = int(time.time())
+				if not dry_run:
+					s[key] = int(time.time())
 				submited += 1
 				time.sleep(submit_delay)
 
