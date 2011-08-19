@@ -66,6 +66,8 @@ if quiet:
 	veryverbose = False
 	normalverbose = False
 
+if submit_delay >= refresh_time or submit_delay < 5 or refresh_time < 60:
+	raise Exception("Provide sane submit_delay (>=5), refresh_time (>=60), and submit_delay < refresh_time.")
 
 if verbose: print "Found", len(reddit_subreddits), "subreddit sections."
 
