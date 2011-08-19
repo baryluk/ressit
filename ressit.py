@@ -20,6 +20,8 @@ defaults = {
 	'db_filename'      : "uploads.shelve.db",
 	'dry_run'          : False,
 	'verbose'          : False,
+	'veryverbose'      : False,
+	'nonverbose'       : False,
 	'quiet'            : False
 }
 
@@ -48,11 +50,24 @@ refresh_time     = config.getint('general', 'refresh_time')
 db_filename      = config.get('general', 'db_filename')
 dry_run          = config.getboolean('general', 'dry_run')
 verbose          = config.getboolean('general', 'verbose')
+veryverbose      = config.getboolean('general', 'veryverbose')
+nonverbose       = config.getboolean('general', 'nonverbose')
 quiet            = config.getboolean('general', 'quiet')
 
-nq = not quiet
+if (verbose or veryverbose) and nonverbose:
+	raise Exception("Cannot use (very)verbose and nonverbose same time")
 
-if nq: print "Found", len(reddit_subreddits), "subreddit sections."
+normalverbose = True
+if veryverbose:
+	verbose = True
+
+if quiet:
+	verbose = False
+	veryverbose = False
+	normalverbose = False
+
+
+if verbose: print "Found", len(reddit_subreddits), "subreddit sections."
 
 while True:
 	s = shelve.open(db_filename)
@@ -62,13 +77,13 @@ while True:
 
 	def login(r, k):
 		if r == None:
-			if nq: print "Logging in as %s ..." % (reddit_username),
+			if verbose: print "Logging in as %s ..." % (reddit_username),
 			r = reddit.Reddit(user_agent="ressit robot 0.1")
 			r.login(user=reddit_username, password=reddit_password)
-			if nq: print "logged,",
+			if verbose: print "logged,",
 		if k == None:
 			k = r.get_subreddit(reddit_subreddit)
-			if nq: print "got reddit."
+			if verbose: print "got reddit."
 		return r, k
 
 	for reddit_subreddit in reddit_subreddits:
@@ -78,44 +93,44 @@ while True:
 
 		k = None
 
-		if nq: print "Starting update for subreddit r/%s" % (reddit_subreddit)
+		if verbose: print "Starting update for subreddit r/%s" % (reddit_subreddit)
 
 		feeds = config.items(section_name)
 		if len(feeds) == 0:
-			if nq: print "WARNING: No feeds for subreddit", reddit_subreddit
+			if not quiet: print "WARNING: No feeds for subreddit", reddit_subreddit
 			continue
 		# TODO: multifeed uploader
 		for key, feed_url in feeds:
-			if nq: print time.asctime()
-			if nq: print "Retriving, parsing, and analyzing feed", feed_url
+			if verbose: print time.asctime()
+			if verbose: print "Retriving, parsing, and analyzing feed", feed_url
 			ignored, submited = 0, 0
 			for f in reversed(feedparser.parse(feed_url).entries):
 				key = str(f.link)
 				if key in s:
-					if verbose:
+					if veryverbose:
 						print "ignoring %d:" % (ignored+1), f.title, f.link
 					ignored += 1
 					continue
 				r, k = login(r, k) # lazy login
-				if nq: print "submiting %d:" % (submited+1), f.title, f.linke
+				if normalverbose: print "submiting %d:" % (submited+1), f.title, f.link,
 				s[key] = 1
 				if not dry_run:
 					k.submit(url=f.link, title=f.title)
 				else:
-					if nq: print "dry run",
+					if normalverbose: print "dry run",
 				# TODO: automatically 'approve' this submissions
-				if nq: print "submited."
+				if normalverbose: print "submited."
 				s[key] = int(time.time())
 				submited += 1
 				time.sleep(submit_delay)
 
-			if nq: print "Feed summary:", ignored, "ignored,", submited, "submited."
+			if verbose: print "Feed summary:", ignored, "ignored,", submited, "submited."
 
 	s.close()
 	k = None
 	r = None
 	if looping:
-		if nq: print "Sleeping", refresh_time, "second for feed updates."
+		if verbose: print "Sleeping", refresh_time, "second for feed updates."
 		time.sleep(refresh_time)
 	else:
 		break
