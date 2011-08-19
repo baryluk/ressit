@@ -48,7 +48,7 @@ refresh_time     = config.getint('general', 'refresh_time')
 db_filename      = config.get('general', 'db_filename')
 dry_run          = config.getboolean('general', 'dry_run')
 
-while looping:
+while True:
 	s = shelve.open(db_filename)
 
 	r = None
@@ -110,3 +110,5 @@ while looping:
 	if looping:
 		print "Sleeping", refresh_time, "second for feed updates."
 		time.sleep(refresh_time)
+	else:
+		break
