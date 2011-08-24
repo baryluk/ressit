@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import reddit as reddit
 import feedparser
@@ -77,14 +78,14 @@ while True:
 	r = None
 	k = None
 
-	def login(r, k):
-		if r == None:
+	def login(r, k, sr):
+		if r is None:
 			if verbose: print "Logging in as %s ..." % (reddit_username),
 			r = reddit.Reddit(user_agent="ressit robot 0.1")
 			r.login(user=reddit_username, password=reddit_password)
 			if verbose: print "logged,",
-		if k == None:
-			k = r.get_subreddit(reddit_subreddit)
+		if k is None:
+			k = r.get_subreddit(sr)
 			if verbose: print "got reddit."
 		return r, k
 
@@ -110,10 +111,10 @@ while True:
 				key = str(f.link)
 				if key in s and s[key] != 1:
 					if veryverbose:
-						print "ignoring %d:" % (ignored+1), f.title, f.link
+						print "ignoring %d:" % (ignored+1), f.title, f.link, "(", s[key], ")"
 					ignored += 1
 					continue
-				r, k = login(r, k) # lazy login
+				r, k = login(r, k, reddit_subreddit) # lazy login
 				if normalverbose: print "submiting %d:" % (submited+1), f.title, f.link,
 				s[key] = 1
 				if not dry_run:
