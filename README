@@ -16,5 +16,16 @@ Read reddit term of usage, and do not spam reddit unacassarly.
 Not following sane behaviour will end with account or IP address blocked.
 
 
-TODO
+TODO:
   - OPML parser
+  - use updateFrequency and other meta-informations from feed
+  - adjust frequency dynamically, depending how often it changes beeteewen updates.
+
+Known Issues:
+  - needs UTF-8 locale settings to work properly
+    Workarounds:
+      * enable quiet mode to prevent printing new (or any) post titles
+      * make sure you run with correct locales (actually terminal settings),
+        it can be useful to set LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+        (usefull when calling ressit in non-daemon mode from cron).
+        You can set it cron, or apply locales system-wide.
